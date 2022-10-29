@@ -1,6 +1,6 @@
 # Trilha JS Developer - Pokedex
 
-![preview](./.github/preview.JPG)
+![preview](./.github/preview.jpg)
 
 Projeto desenvolvido como exercício do bootcamp Orange Tech+ da Dio, com intuíto de prática de JavaScript. Foi disponibilizado o projeto com a listagem de pokémons, e o exercício proposto era melhorar a página, e implementar a tela de detalhes dos pokémons.
 
