@@ -14,4 +14,7 @@ class Pokemon {
     description;
     generation;
     eggGroups = [];
+    evolutionChain;
+    evolutions = [];
+    liked;
 }

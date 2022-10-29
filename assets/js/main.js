@@ -1,7 +1,8 @@
 const pokemonList = document.getElementById('pokemonList');
 const loadMoreButton = document.getElementById('loadMoreButton');
-const pokedexList = [];
+var pokedexList = [];
 let likedParam = '';
+let popup = document.querySelector('#popup');
 let modal = document.querySelector('.modal');
 let infoDetails = document.querySelector('.infoModal');
 
@@ -9,6 +10,19 @@ const maxRecords = 9999;
 const limit = 20;
 let offset = 0;
 
+//Carrega os pokemons na tela
+loadPokemonItens(offset, limit)
+
+//Requisita mais pokemons a API baseado no limite
+function loadPokemonItens(offset, limit) {
+    pokeApi.getPokemons(offset, limit).then((pokemons = []) => {
+        pokedexList.push(pokemons)
+        const newHtml = pokemons.map(convertPokemonToLi).join('')
+        pokemonList.innerHTML += newHtml
+    })
+}
+
+//Converte os pokemons em uma lista
 function convertPokemonToLi(pokemon) {
     return `
     <button id="${pokemon.number}" class='pokemon-card' onclick='openModal(${pokemon.number})'>
@@ -29,24 +43,21 @@ function convertPokemonToLi(pokemon) {
     `
 }
 
-//Requisita mais pokemons a API baseado no limite
-function loadPokemonItens(offset, limit) {
-    pokeApi.getPokemons(offset, limit).then((pokemons = []) => {
-        pokedexList.push(pokemons)
-        const newHtml = pokemons.map(convertPokemonToLi).join('')
-        pokemonList.innerHTML += newHtml
-    })
-}
+//Pega o pokemon pela Id
+function catchPokemon(pokemonId){
+    let page = parseInt((pokemonId-1) / limit);
+    let index = (pokemonId-1) % limit;
+    let pokemon = pokedexList[page][index];
 
-loadPokemonItens(offset, limit)
+    return pokemon
+}
 
 //Abre janela Modal
 function openModal(pokemonId) {
     let page = parseInt((pokemonId-1) / limit);
     let index = (pokemonId-1) % limit;
-    let pokemon = pokedexList[page][index];
+    let pokemon = catchPokemon(pokemonId);
     const newModal = buildModal(pokemon);
-
     modal.style.display = 'block';
     modal.classList.add(`${pokemon.type}`);    
     modal.innerHTML += newModal;
@@ -64,23 +75,129 @@ function openModal(pokemonId) {
     let msg = details(id, pokemonId);
     menuInfo.innerHTML = msg;
 
+    //Inicializa o botão de favorito, caso estiver favoritado
+    let botao = document.querySelector('.heart');
+
+    if (pokemon.liked == false || pokemon.liked == undefined) {
+        pokedexList[page][index].liked = false;
+        botao.classList.remove("liked");
+    } else {
+        pokedexList[page][index].liked = true;
+        botao.classList.add("liked");
+    }
+
     //Chama função de formatar dados
     formatData();
 }
 
+//Função fechar botão mensagem de alerta do favorito
+function showPopUp(){
+	popup.style.display="flex";
+
+    setTimeout(closePopUp, 5000)
+}
+
+function closePopUp(){
+	popup.style.display="none";    
+}
+
+//Fecha janela Modal
+function closeModal(pokemonId) {
+    let pokemon = catchPokemon(pokemonId);
+
+    modal.classList.remove(`${pokemon.type}`);
+    modal.style.display = "none";
+    modal.innerHTML = "";
+
+    closePopUp();
+}
+
+//Constrói a janela modal
+function buildModal(pokemon) {
+    return `
+    <div class="header">
+        <div class="buttons">
+        <div class="back">
+            <button onclick="closeModal(${pokemon.number})">
+                <img src="/assets/img/arrow.png" alt="Voltar">
+            </button>
+        </div>
+
+        <button class="heart ${likedParam}" onclick="likedToggle(this, ${pokemon.number})">
+            <img src="/assets/img/heart.png" alt="Coração">
+        </button>
+        </div>
+        <div class="infos">
+            <div class="detail">
+                <span class="name">${pokemon.name}</span>
+                <ol class="types">
+                    ${pokemon.types.map((type) => `<li class="type ${type}">${type}</li>`).join('')}
+                </ol>
+            </div>
+
+            <span class="number">#${pokemon.number}</span>
+        </div>
+
+        <div class="photo">
+            <img src="${pokemon.photo}" alt="${pokemon.name}">
+        </div>
+    </div>
+
+    <div class="detailsModal">
+        <ul class="menuModal">
+            <button id="menu1" class="selected" onclick="menuSelector('menu1', '${pokemon.number}')">
+                <li>About</li>
+            </button>
+            <button id="menu2" class="" onclick="menuSelector('menu2', '${pokemon.number}')">
+                <li>Base Stats</li>
+            </button>
+            <button id="menu3" class="" onclick="menuSelector('menu3', '${pokemon.number}')">
+                <li>Evolution Chain</li>
+            </button>
+            <button id="menu4" class="" onclick="menuSelector('menu4', '${pokemon.number}')">
+                <li>Moves</li>
+            </button>
+        </ul>
+
+        <hr>
+
+        <div class="infoModal">
+        </div>
+    </div>
+    `
+}
+
 //Formata Movimentos
-function formatMoves(){
-    let movesUpper = document.querySelector('.moves');
-    let movesUpperText = document.querySelector('.moves').textContent;
-    let splitString = movesUpperText.split(',');
+function formatMoves(pokemonId){
+    let moves = document.querySelector('.moves table tbody');
+    let pokemon = catchPokemon(pokemonId);
+    let movesUpperText = pokemon.moves;
+    
+    let upper = movesUpperText.map ((e) => {
+        return '• ' + e.charAt(0).toUpperCase() + e.substring(1) + '<br />';
+    })
+    
+    for(i=0; i < upper.length; i+=3){
+        moves.innerHTML += `<td>${upper[i]}</td>
+                            <td>${upper[i+1]}</td>
+                            <td>${upper[i+2]}</td>`;
+    }
+}
+
+//Formata Evoluções
+function formatEvolutions(){
+    let evolutionsUpper = document.querySelector('.evolutions');
+    let evolutionsUpperText = document.querySelector('.evolutions').textContent;
+    let splitString = evolutionsUpperText.split(',');
     
     let upper = splitString.map ((e) => {
         return ' ' + e.charAt(0).toUpperCase() + e.substring(1);
     })
     
-    movesUpper.innerHTML = upper;
+    evolutionsUpper.innerHTML = upper;
 }
 
+//Formata demais características
 function formatData(){
     //Formata habilidades
     let abilitiesUpper = document.querySelector('.abilities');
@@ -112,17 +229,6 @@ function formatData(){
     }
 }
 
-//Fecha janela Modal
-function closeModal(pokemonId) {
-    let page = parseInt((pokemonId-1) / limit);
-    let index = (pokemonId-1) % limit;
-    let pokemon = pokedexList[page][index];
-
-    modal.classList.remove(`${pokemon.type}`);
-    modal.style.display = "none";
-    modal.innerHTML = "";
-}
-
 //Seleção do menu
 function menuSelector(id, pokemonId) {
     let menuId = document.getElementById(id);
@@ -144,15 +250,14 @@ function menuSelector(id, pokemonId) {
     //Dependendo do menu, chama a função espeficica referente aos dados
     if (menuId.id == 'menu1') formatData();
     if (menuId.id == 'menu2') barColors(pokemonId);
-    if (menuId.id == 'menu4') formatMoves();
+    if (menuId.id == 'menu3') formatEvolutions();
+    if (menuId.id == 'menu4') formatMoves(pokemonId);
 }
 
 //Ajuste das barras de atributos
 function barColors (pokemonId){
     let colorBar = document.querySelectorAll('.health-bar div');
-    let page = parseInt((pokemonId-1) / limit);
-    let index = (pokemonId-1) % limit;
-    let pokemon = pokedexList[page][index];
+    let pokemon = catchPokemon(pokemonId);
     let stats = pokemon.stats;
     let maxWidthBar = 200, maxAttribute = 225, newWidthBar = 0;
 
@@ -172,61 +277,6 @@ function barColors (pokemonId){
     }
 }
 
-//Constrói a janela modal
-function buildModal(pokemon) {
-    return `
-    <div class="header">
-        <div class="buttons">
-        <div class="back">
-            <button onclick="closeModal(${pokemon.number})">
-                <img src="/assets/img/arrow.png" alt="Voltar">
-            </button>
-        </div>
-
-        <button class="heart ${likedParam}" onclick="liked(this)">
-            <img src="/assets/img/heart.png" alt="Coração">
-        </button>
-        </div>
-        <div class="infos">
-            <div class="detail">
-                <span class="name">${pokemon.name}</span>
-                <ol class="types">
-                    ${pokemon.types.map((type) => `<li class="type ${type}">${type}</li>`).join('')}
-                </ol>
-            </div>
-
-            <span class="number">#${pokemon.number}</span>
-        </div>
-
-        <div class="photo">
-            <img src="${pokemon.photo}" alt="${pokemon.name}">
-        </div>
-    </div>
-
-    <div class="detailsModal">
-        <ul class="menuModal">
-            <button id="menu1" class="selected" onclick="menuSelector('menu1', '${pokemon.number}')">
-                <li>About</li>
-            </button>
-            <button id="menu2" class="" onclick="menuSelector('menu2', '${pokemon.number}')">
-                <li>Base Stats</li>
-            </button>
-            <button id="menu3" class="" onclick="menuSelector('menu3', '${pokemon.number}')">
-                <li>Evolution</li>
-            </button>
-            <button id="menu4" class="" onclick="menuSelector('menu4', '${pokemon.number}')">
-                <li>Moves</li>
-            </button>
-        </ul>
-
-        <hr>
-
-        <div class="infoModal">
-        </div>
-    </div>
-    `
-}
-
 //Carrega mais pokemons ao clicar no botão de Carregar mais
 loadMoreButton.addEventListener('click', () => {
     offset += limit
@@ -242,22 +292,35 @@ loadMoreButton.addEventListener('click', () => {
     }
 })
 
-//Botão de favoritar pokemon superficial
-function liked(botao){
-    if (botao.classList.contains("liked")) {
-        likedParam = '';
-        botao.classList.remove("liked");
-    } else {
-        likedParam = 'liked';
+//Botão de favoritar pokemon
+function likedToggle(botao, pokemonId){
+    let page = parseInt((pokemonId-1) / limit);
+    let index = (pokemonId-1) % limit;
+    let pokemon = pokedexList[page][index];
+    let cardPokemon = document.getElementById(pokemonId);
+    let cardChildren = cardPokemon.children[0];
+
+    if (pokemon.liked == null || pokemon.liked == undefined) {
+        pokedexList[page][index].liked = true;
         botao.classList.add("liked");
+        cardChildren.classList.toggle("favoritedPokemon");
+        showPopUp();
+    } else if (pokemon.liked == false) {
+        pokedexList[page][index].liked = true;
+        botao.classList.add("liked");
+        cardChildren.classList.toggle("favoritedPokemon");
+        showPopUp();
+    } else {
+        pokedexList[page][index].liked = false;
+        botao.classList.remove("liked");
+        cardChildren.classList.toggle("favoritedPokemon");
+        closePopUp();
     }
 }
 
 //Menu de detalhes
 function details(param, pokemonId){
-    let page = parseInt((pokemonId-1) / limit);
-    let index = (pokemonId-1) % limit;
-    let pokemon = pokedexList[page][index];
+    let pokemon = catchPokemon(pokemonId);
 
     if(param == 'menu1'){
         return `
@@ -343,17 +406,20 @@ function details(param, pokemonId){
     } else if(param == 'menu3'){
         return `
         <div class="about1">
-            <div><label class="text-gray">Species4</label> <label>Seed</label></div>
-            <div><label class="text-gray">Height</label> <label>Seed</label></div>
-            <div><label class="text-gray">Weight</label> <label>Seed</label></div>
-            <div><label class="text-gray">Abilities</label> <label>Seed</label></div>
+            <label class="evolutions">${pokemon.evolutions}</label>
+
         </div>
         `
     } else if(param == 'menu4'){
         return `
         <div class="about1">
-            <label class="moves">${pokemon.moves}</label>
+            <label class="moves">
+                <table>
+                    <tbody></tbody>
+                </table>
+            </label>
         </div>
         `
     }
 }
+

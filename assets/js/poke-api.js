@@ -1,37 +1,28 @@
 
 const pokeApi = {}
 
-function getDescription(pokemon) {
-    const url = `https://pokeapi.co/api/v2/pokemon-species/${pokemon.number}`;
-    
-    fetch(url)
-        .then(response => response.json())
-        .then((data) => {
-            const filteredFlavorTextEntries = data.flavor_text_entries.filter(
-                (element) => element.language.name === "en"
-            );
-            
-            let description = filteredFlavorTextEntries[0].flavor_text;
-            let generation = data.generation.name;
-            let generationSplit = generation.split('-');
-            let generationUpper = generationSplit[0].charAt(0).toUpperCase() + generationSplit[0].substring(1) + ' ' + generationSplit[1].toUpperCase();
-            
-            let eggsNames = data.egg_groups.map((e) => {
-                return e.name;
-            });
+//Pega os pokemons pela API
+pokeApi.getPokemons = (offset = 0, limit = 5) => {
+    const url = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`
 
-            let eggsUpper = eggsNames.map ((e) => {
-                return e.charAt(0).toUpperCase() + e.substring(1);
-            })
-            
-            pokemon.eggGroups = eggsUpper.join(', ');
-            pokemon.generation = generationUpper;         
-            pokemon.description = description.replace('', ' ');
-        })
-
-    return pokemon;
+    return fetch(url)
+        .then((response) => response.json())
+        .then((jsonBody) => jsonBody.results)
+        .then((pokemons) => pokemons.map(pokeApi.getPokemonDetail))
+        .then((detailRequests) => Promise.all(detailRequests))
+        .then((pokemonsDetails) => pokemonsDetails)
 }
 
+//Faz a chamada para cada pokemon da lista
+pokeApi.getPokemonDetail = (pokemon) => {
+    return fetch(pokemon.url)
+        .then((response) => response.json())
+        .then(convertPokeApiDetailToPokemon)
+        .then(getInfoSpecies)
+        .then(getEvolutions)
+}
+
+//Converte os detalhes da API em um pokemon
 function convertPokeApiDetailToPokemon(pokeDetail) {
     const pokemon = new Pokemon()
     pokemon.photo = pokeDetail.sprites.other.dream_world.front_default
@@ -68,21 +59,73 @@ function convertPokeApiDetailToPokemon(pokeDetail) {
     return pokemon
 }
 
-pokeApi.getPokemonDetail = (pokemon) => {
-    return fetch(pokemon.url)
-        .then((response) => response.json())
-        .then(convertPokeApiDetailToPokemon)
-        .then(getDescription)
-        //.then(getEvolutions)
+//Pega mais informações sobre os pokemons relativo às espécies
+function getInfoSpecies(pokemon) {
+    const url = `https://pokeapi.co/api/v2/pokemon-species/${pokemon.number}`;
+    
+    return fetch(url)
+        .then(response => response.json())
+        .then((data) => {
+            const filteredFlavorTextEntries = data.flavor_text_entries.filter(
+                (element) => element.language.name === "en"
+            );
+            
+            //Cria as variáveis da informações
+            let description = filteredFlavorTextEntries[0].flavor_text;
+            let generation = data.generation.name;
+            let generationSplit = generation.split('-');
+            let generationUpper = generationSplit[0].charAt(0).toUpperCase() + generationSplit[0].substring(1) + ' ' + generationSplit[1].toUpperCase();
+            let evolutionSplit = data.evolution_chain.url.split('/', 7);
+            let evolution = evolutionSplit[6];
+
+            let eggsNames = data.egg_groups.map((e) => {
+                return e.name;
+            });
+
+            let eggsUpper = eggsNames.map ((e) => {
+                return e.charAt(0).toUpperCase() + e.substring(1);
+            })
+
+            //Insere as informações tratadas dentro da classe Pokemon
+            pokemon.eggGroups = eggsUpper.join(', ');
+            pokemon.generation = generationUpper;         
+            pokemon.description = description.replace('', ' ');
+            pokemon.evolutionChain = evolution;
+
+            return pokemon;
+        })
 }
 
-pokeApi.getPokemons = (offset = 0, limit = 5) => {
-    const url = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`
+//Pega as evoluções do pokemon
+function getEvolutions(pokemon) {
+    const url = `https://pokeapi.co/api/v2/evolution-chain/${pokemon.evolutionChain}`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then((data) => {
 
-    return fetch(url)
-        .then((response) => response.json())
-        .then((jsonBody) => jsonBody.results)
-        .then((pokemons) => pokemons.map(pokeApi.getPokemonDetail))
-        .then((detailRequests) => Promise.all(detailRequests))
-        .then((pokemonsDetails) => pokemonsDetails)
+            //Trata evoluções do Eevee, por serem muitas
+            if (pokemon.evolutionChain != 67 ||
+                pokemon.evolutionChain != 47 ||
+                pokemon.evolutionChain != 213){
+                if(data.chain.evolves_to[0] != null){
+                    if (data.chain.evolves_to[0].evolves_to[0] != null){
+                        pokemon.evolutions = [data.chain.species.name,
+                                            data.chain.evolves_to[0].species.name,
+                                            data.chain.evolves_to[0].evolves_to[0].species.name]
+                    } else {
+                        pokemon.evolutions = [data.chain.species.name,
+                                            data.chain.evolves_to[0].species.name]                  
+                    }                
+                } else{
+                    pokemon.evolutions = "The Pokémon doesn't have an evolution.";
+                }
+            } else {
+                data.chain.evolves_to.map((evolv) => {
+                    pokemon.evolutions += evolv.species.name.charAt(0).toUpperCase() + evolv.species.name.substring(1) + ', ';
+                })     
+            }
+        })
+        
+    return pokemon;
 }
