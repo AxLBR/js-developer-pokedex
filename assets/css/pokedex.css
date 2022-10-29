@@ -172,7 +172,7 @@
 }
 
 .pokemon-card > li {
-    background-image: url(./assets/img/card-bg.png);
+    background-image: url(/assets/img/card-bg.png);
     background-position: 105% 130%;
     background-size: 50%;
     background-repeat: no-repeat;
