@@ -22,6 +22,22 @@ function loadPokemonItens(offset, limit) {
     })
 }
 
+//Infinite Scroll - Carrega mais pokémons ao final da página
+window.addEventListener('scroll', () => {
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight){
+        offset += limit
+        const qtdRecordsWithNexPage = offset + limit
+
+        if (qtdRecordsWithNexPage >= maxRecords) {
+            const newLimit = maxRecords - offset
+            
+            loadPokemonItens(offset, newLimit)
+        } else {
+            loadPokemonItens(offset, limit)
+        }
+    }
+})
+
 //Converte os pokemons em uma lista
 function convertPokemonToLi(pokemon) {
     return `
@@ -88,13 +104,17 @@ function openModal(pokemonId) {
 
     //Chama função de formatar dados
     formatData();
+
+    //Esconde a barra de rolagem do corpo da página
+    let content = document.querySelector('body');
+    content.style.overflowY  = 'hidden';
 }
 
 //Função fechar botão mensagem de alerta do favorito
 function showPopUp(){
 	popup.style.display="flex";
 
-    setTimeout(closePopUp, 5000)
+    setTimeout(closePopUp, 4000)
 }
 
 function closePopUp(){
@@ -110,6 +130,10 @@ function closeModal(pokemonId) {
     modal.innerHTML = "";
 
     closePopUp();
+
+    //Volta a barra de rolagem do corpo da página
+    let content = document.querySelector('body');
+    content.style.overflowY  = 'scroll';
 }
 
 //Constrói a janela modal
@@ -188,16 +212,18 @@ function formatMoves(pokemonId){
 }
 
 //Formata Evoluções
-function formatEvolutions(){
-    let evolutionsUpper = document.querySelector('.evolutions');
-    let evolutionsUpperText = document.querySelector('.evolutions').textContent;
-    let splitString = evolutionsUpperText.split(',');
-    
-    let upper = splitString.map ((e) => {
+function formatEvolutions(pokemonId){
+    let pokemon = catchPokemon(pokemonId);
+
+    let upperName = pokemon.evolutions.map ((e) => {
         return ' ' + e.charAt(0).toUpperCase() + e.substring(1);
     })
     
-    evolutionsUpper.innerHTML = upper;
+    let imgPokemons = pokemon.evolutionsSprites.map((evolvUrl, index) => {
+        return `<div><img src='${evolvUrl}'> <label>${upperName[index]}</label></div>`
+    })
+
+    return imgPokemons.join('');
 }
 
 //Formata demais características
@@ -253,7 +279,7 @@ function menuSelector(id, pokemonId) {
     //Dependendo do menu, chama a função espeficica referente aos dados
     if (menuId.id == 'menu1') formatData();
     if (menuId.id == 'menu2') barColors(pokemonId);
-    if (menuId.id == 'menu3') formatEvolutions();
+    if (menuId.id == 'menu3') formatEvolutions(pokemonId);
     if (menuId.id == 'menu4') formatMoves(pokemonId);
 }
 
@@ -279,21 +305,6 @@ function barColors (pokemonId){
         colorBar[i].style.width = newWidthBar + 'px';
     }
 }
-
-//Carrega mais pokemons ao clicar no botão de Carregar mais
-loadMoreButton.addEventListener('click', () => {
-    offset += limit
-    const qtdRecordsWithNexPage = offset + limit
-
-    if (qtdRecordsWithNexPage >= maxRecords) {
-        const newLimit = maxRecords - offset
-        loadPokemonItens(offset, newLimit)
-
-        loadMoreButton.parentElement.removeChild(loadMoreButton)
-    } else {
-        loadPokemonItens(offset, limit)
-    }
-})
 
 //Botão de favoritar pokemon
 function likedToggle(botao, pokemonId){
@@ -409,7 +420,8 @@ function details(param, pokemonId){
     } else if(param == 'menu3'){
         return `
         <div class="about1">
-            <label class="evolutions">${pokemon.evolutions}</label>
+            <div class="imgEvolutions">${formatEvolutions(pokemonId)}</div>
+            <label class="evolutions"></label>
 
         </div>
         `
@@ -425,4 +437,5 @@ function details(param, pokemonId){
         `
     }
 }
+
 

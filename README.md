@@ -11,6 +11,7 @@ Projeto desenvolvido como exercício do bootcamp Orange Tech+ da Dio, com intuí
 - Acesso das informações via PokeAPI
 - Barras de Atributos
 - Sistema de pokémons favoritos
+- Infinite Scroll
 - Responsividade
 
 # Tecnologias utilizadas:

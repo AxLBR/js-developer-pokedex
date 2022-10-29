@@ -104,18 +104,49 @@ function getEvolutions(pokemon) {
         .then(response => response.json())
         .then((data) => {
 
-            //Trata evoluções do Eevee, por serem muitas
-            if (pokemon.evolutionChain != 67 ||
-                pokemon.evolutionChain != 47 ||
+            //Trata evoluções do Eevee e outros pokemons que possuem muitas
+            if (pokemon.evolutionChain != 67 &&
+                pokemon.evolutionChain != 47 &&
                 pokemon.evolutionChain != 213){
                 if(data.chain.evolves_to[0] != null){
                     if (data.chain.evolves_to[0].evolves_to[0] != null){
                         pokemon.evolutions = [data.chain.species.name,
                                             data.chain.evolves_to[0].species.name,
                                             data.chain.evolves_to[0].evolves_to[0].species.name]
+
+                        //Pega as urls dos pokemons da cadeia de evolução
+                        let evolution1 = data.chain.species.url;
+                        let evolution2 = data.chain.evolves_to[0].species.url;
+                        let evolution3 = data.chain.evolves_to[0].evolves_to[0].species.url;
+
+                        //Divide as urls pega '/' para pegar o id do pokemon
+                        let evolId1 = evolution1.split('/');
+                        let evolId2 = evolution2.split('/');
+                        let evolId3 = evolution3.split('/');
+
+                        //Substitui o id no endereço das imagens dos pokemons e armazena
+                        let urlSprite = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/'
+                        
+                        pokemon.evolutionsSprites = [`${urlSprite}${evolId1[6]}.svg`,
+                                                     `${urlSprite}${evolId2[6]}.svg`,
+                                                     `${urlSprite}${evolId3[6]}.svg`];
                     } else {
                         pokemon.evolutions = [data.chain.species.name,
-                                            data.chain.evolves_to[0].species.name]                  
+                                            data.chain.evolves_to[0].species.name]  
+                
+                        //Pega as urls dos pokemons da cadeia de evolução
+                        let evolution1 = data.chain.species.url;
+                        let evolution2 = data.chain.evolves_to[0].species.url;
+
+                        //Divide as urls pega '/' para pegar o id do pokemon
+                        let evolId1 = evolution1.split('/');
+                        let evolId2 = evolution2.split('/');
+
+                        //Substitui o id no endereço das imagens dos pokemons e armazena
+                        let urlSprite = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/'
+                        
+                        pokemon.evolutionsSprites = [`${urlSprite}${evolId1[6]}.svg`,
+                                                     `${urlSprite}${evolId2[6]}.svg`,]
                     }                
                 } else{
                     pokemon.evolutions = "The Pokémon doesn't have an evolution.";
@@ -123,6 +154,15 @@ function getEvolutions(pokemon) {
             } else {
                 data.chain.evolves_to.map((evolv) => {
                     pokemon.evolutions += evolv.species.name.charAt(0).toUpperCase() + evolv.species.name.substring(1) + ', ';
+
+                    //Pega as urls dos pokemons e divide a string pra pegar o id
+                    let evolutions = evolv.species.url;
+                    let evolId = evolutions.split('/');
+
+                    //Substitui o id no endereço das imagens dos pokemons e armazena
+                    let urlSprite = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/'
+                    
+                    pokemon.evolutionsSprites += [`${urlSprite}${evolId[6]}.svg`]
                 })     
             }
         })

@@ -16,5 +16,6 @@ class Pokemon {
     eggGroups = [];
     evolutionChain;
     evolutions = [];
+    evolutionsSprites = [];
     liked;
 }
