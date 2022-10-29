@@ -388,7 +388,28 @@ h4 {
 
  .moves {
     line-height: 1.4rem;
+    height: 41vh;
+    overflow-y: scroll;
  }
+
+ .moves table {
+    text-align: left;
+    padding: 0 10px;
+    width: 100%;
+ }
+
+ .moves::-webkit-scrollbar {
+    width: 0.15em;
+}
+ 
+.moves::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+ 
+.moves::-webkit-scrollbar-thumb {
+  background-color: #999;
+  outline: 1px solid #999;
+}
 
  .favoritedPokemon {
     border: 3px dashed #555;

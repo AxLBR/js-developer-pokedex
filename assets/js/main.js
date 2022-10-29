@@ -177,10 +177,13 @@ function formatMoves(pokemonId){
         return '• ' + e.charAt(0).toUpperCase() + e.substring(1) + '<br />';
     })
     
-    for(i=0; i < upper.length; i+=3){
-        moves.innerHTML += `<td>${upper[i]}</td>
-                            <td>${upper[i+1]}</td>
-                            <td>${upper[i+2]}</td>`;
+    for(i=0; i < upper.length; i+=2){      
+        if (upper [i+1] != undefined){
+            moves.innerHTML += `<td>${upper[i]}</td>
+                                <td>${upper[i+1]}</td>`;
+        } else {
+            moves.innerHTML += `<td>${upper[i]}</td>`;
+        }
     }
 }
 
