@@ -351,6 +351,7 @@ hr {
 
 .about2 label {
     line-height: 1.5rem;
+    padding-right: 15px;
 }
 
 .text-gray{
@@ -486,7 +487,7 @@ h4 {
     height: 1.2rem;
 }
 
-@media screen and (max-height: 670px) {
+@media screen and (max-height: 750px) {
     .infosPokemon {
         height: 30vh !important;
     }
@@ -497,6 +498,24 @@ h4 {
 
     .moves {
         height: 30vh !important;
+    }
+
+    .infosPokemon {
+        overflow-y: scroll;
+        height: 37vh;
+    }
+
+    .infosPokemon::-webkit-scrollbar {
+        width: 0.15em;
+    }
+    
+    .infosPokemon::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    }
+    
+    .infosPokemon::-webkit-scrollbar-thumb {
+    background-color: #999;
+    outline: 1px solid #999;
     }
 }
 
@@ -522,24 +541,6 @@ h4 {
     .about1 div {
         gap: 10px;
     }
-
-    .infosPokemon {
-        overflow-y: scroll;
-        height: 37vh;
-    }
-
-    .infosPokemon::-webkit-scrollbar {
-        width: 0.15em;
-    }
-    
-    .infosPokemon::-webkit-scrollbar-track {
-        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-    }
-    
-    .infosPokemon::-webkit-scrollbar-thumb {
-    background-color: #999;
-    outline: 1px solid #999;
-    }
 }
 
 @media screen and (min-width: 380px) {
@@ -563,24 +564,6 @@ h4 {
         width: 13rem;
         padding: 10px 15px 10px 15px;
         top: 0;
-    }
-
-    .infosPokemon {
-        overflow-y: scroll;
-        height: 37vh;
-    }
-
-    .infosPokemon::-webkit-scrollbar {
-        width: 0.15em;
-    }
-    
-    .infosPokemon::-webkit-scrollbar-track {
-        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-    }
-    
-    .infosPokemon::-webkit-scrollbar-thumb {
-    background-color: #999;
-    outline: 1px solid #999;
     }
 }
 
