@@ -38,6 +38,21 @@ window.addEventListener('scroll', () => {
     }
 })
 
+//Carrega mais pokemons ao clicar no botão de Carregar (caso o infinite scroll falhe)
+loadMoreButton.addEventListener('click', () => {
+    offset += limit
+    const qtdRecordsWithNexPage = offset + limit
+
+    if (qtdRecordsWithNexPage >= maxRecords) {
+        const newLimit = maxRecords - offset
+        loadPokemonItens(offset, newLimit)
+
+        loadMoreButton.parentElement.removeChild(loadMoreButton)
+    } else {
+        loadPokemonItens(offset, limit)
+    }
+})
+
 //Converte os pokemons em uma lista
 function convertPokemonToLi(pokemon) {
     return `
