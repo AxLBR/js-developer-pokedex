@@ -338,6 +338,7 @@ function details(param, pokemonId){
 
     if(param == 'menu1'){
         return `
+        <div class="infosPokemon">
         <div class="about1">
             <div><label class="text-gray">Base. Exp.</label> <label>${pokemon.baseExp} exp.</label></div>
             <div><label class="text-gray">Height</label> <label class="height">${pokemon.height}</label></div>
@@ -350,6 +351,7 @@ function details(param, pokemonId){
         <div class="about2">
         <h4> Description </h4>
             <label>${pokemon.description}</label>
+        </div>
         </div>
         `
     } else if(param == 'menu2'){
